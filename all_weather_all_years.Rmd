@@ -1,0 +1,134 @@
+---
+title: "Portland Data Science Group historical severe weather data visualization workshop"
+output: html_notebook
+---
+
+```{r}
+
+library(tidyverse)
+library(leaflet)
+library(fiftystater)
+library(maps)
+library(mapproj)
+library(viridis)
+library(ggmap)
+library(plotly)
+library(shiny)
+
+```
+
+```{r}
+
+# Portland Data Science Group data: https://drive.google.com/drive/folders/1JK1Oo6a85ZvEs1f3MM3wcGzCSAskXd-4
+# NOAA website: https://www.ncdc.noaa.gov/stormevents/
+
+# Jonathan Mackrory - event_reduced = broader groupings of events; also did some other cleanup
+
+weather_trim3 <- read.csv("detail_trim3.csv")
+
+```
+
+
+```{r}
+
+# number of rain events per state
+# fiftystates needs lowercase state names
+
+all_weather_events <- weather_trim3 %>%
+  mutate(STATE = tolower(STATE)) %>%
+  group_by(STATE, YEAR) %>%
+  summarize(event_count = n())
+ 
+
+```
+
+
+
+
+# lookup table of 50 state names
+# join with rain_2016_states
+# replace NA with zero
+
+
+statelist <- data.frame(state = tolower(state.name))
+
+rain_2016_allstates <- left_join(statelist, rain_2016_states, by="state")
+
+rain_2016_allstates$event_count[is.na(rain_2016_allstates$event_count)] <- 0
+
+
+
+
+
+```{r}
+
+# code from fiftystater vignette: https://cran.r-project.org/web/packages/fiftystater/vignettes/fiftystater.html
+
+
+allmap <- ggplot(all_weather_events, aes(map_id = STATE)) +
+  geom_map(aes(fill = event_count), map = fifty_states) + 
+  expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  coord_map() +
+  scale_x_continuous(breaks = NULL) + 
+  scale_y_continuous(breaks = NULL) +
+  labs(x = "", y = "") +
+  theme(legend.position = "bottom", 
+        panel.background = element_blank()) +
+  fifty_states_inset_boxes() +
+  ggtitle("Number of severe weather events 1996-2016 by state") +
+  scale_fill_viridis()
+
+allmap
+
+ggsave("all_weather.png", allmap)
+
+```
+
+
+```{r}
+
+# all events by state in 2016
+# plotly needs state abbrevations to work
+
+state_abbs <- data.frame(STATE = toupper(state.name), state.abb)
+
+all_weather_events_stateabbrev <- weather_trim3 %>%
+  filter(YEAR == 2016) %>%
+  group_by(STATE, YEAR) %>%
+  summarize(event_count = n())
+
+all_weather_events_stateabbrev <- left_join(all_weather_events_stateabbrev, state_abbs)
+
+```
+
+```{r}
+
+plot_ly(type = "choropleth", 
+        locations = all_weather_events_stateabbrev$state.abb,
+        locationmode = "USA-states",
+        z = all_weather_events_stateabbrev$event_count) %>%
+  layout(geo = list(scope = "usa"))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
