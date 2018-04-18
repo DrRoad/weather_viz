@@ -33,18 +33,19 @@ weather_trim3 <- read.csv("detail_trim3.csv")
 
 # number of rain events per state
 # fiftystates needs lowercase state names
+# plotly needs state abbreviations
 
-all_weather_events <- weather_trim3 %>%
-  mutate(STATE = tolower(STATE)) %>%
-  group_by(STATE, YEAR) %>%
-  summarize(event_count = n())
- 
+
+weather_trim3 <- weather_trim3 %>%
+  mutate(state = tolower(STATE))
+
+state_abbs <- data.frame(STATE = toupper(state.name), state.abb)
+
+weather_trim3 <- left_join(weather_trim3, state_abbs) 
 
 ```
 
-
-
-
+# some queries don't cover all states (e.g. Rain events in 2016), so those need to be added as 0 or they will show as holes in the map 
 # lookup table of 50 state names
 # join with rain_2016_states
 # replace NA with zero
@@ -58,14 +59,16 @@ rain_2016_allstates$event_count[is.na(rain_2016_allstates$event_count)] <- 0
 
 
 
-
-
 ```{r}
 
 # code from fiftystater vignette: https://cran.r-project.org/web/packages/fiftystater/vignettes/fiftystater.html
 
 
-allmap <- ggplot(all_weather_events, aes(map_id = STATE)) +
+all_2016_ggplot <- weather_trim3 %>%
+  filter(YEAR == 2016) %>%
+  group_by(STATE, state, YEAR) %>%
+  summarize(event_count = n()) %>%
+  ggplot(aes(map_id = state)) +
   geom_map(aes(fill = event_count), map = fifty_states) + 
   expand_limits(x = fifty_states$long, y = fifty_states$lat) +
   coord_map() +
@@ -75,39 +78,49 @@ allmap <- ggplot(all_weather_events, aes(map_id = STATE)) +
   theme(legend.position = "bottom", 
         panel.background = element_blank()) +
   fifty_states_inset_boxes() +
-  ggtitle("Number of severe weather events 1996-2016 by state") +
+  ggtitle("Number of severe weather events in 2016 by state") +
   scale_fill_viridis()
 
-allmap
+all_2016_ggplot
 
-ggsave("all_weather.png", allmap)
+ggsave("all_weather.png", all_2016_ggplot)
 
 ```
 
 
 ```{r}
 
-# all events by state in 2016
-# plotly needs state abbrevations to work
+# have to filter data first, then do plotly (doesn't seem to work with filter piped directly into plotly)
 
-state_abbs <- data.frame(STATE = toupper(state.name), state.abb)
+# prepare columns adding indirect/direct injuries, indirect/direct deaths, property/crop damage
 
-all_weather_events_stateabbrev <- weather_trim3 %>%
+weather_trim3 <- weather_trim3 %>% 
+  mutate(INJURIES_ALL = rowSums(weather_trim3[ ,14:15], na.rm = TRUE),
+         DEATHS_ALL = rowSums(weather_trim3[ ,16:17], na.rm = TRUE),
+         DAMAGE_ALL = rowSums(weather_trim3[ ,18:19], na.rm = TRUE))
+
+# filter year and add number of event and sums of injuries, deaths, damage
+
+plotly_2016_data <- weather_trim3 %>%
   filter(YEAR == 2016) %>%
-  group_by(STATE, YEAR) %>%
-  summarize(event_count = n())
+  group_by(state.abb) %>%
+  summarize(event_count = n(), Injuries_total = sum(INJURIES_ALL), Deaths_total = sum(DEATHS_ALL), Damage_total = sum(DAMAGE_ALL))
 
-all_weather_events_stateabbrev <- left_join(all_weather_events_stateabbrev, state_abbs)
+# add hover column for mouse-over text
+
+plotly_2016_data$hover <- c(paste0("Injuries = ", plotly_2016_data$Injuries_total, 
+                                "\nDeaths = ", plotly_2016_data$Deaths_total, 
+                                "\nDamage = ", plotly_2016_data$Damage_total))
 
 ```
 
 ```{r}
 
-plot_ly(type = "choropleth", 
-        locations = all_weather_events_stateabbrev$state.abb,
+plot_ly(plotly_2016_data, type = "choropleth", 
+        locations = plotly_2016_data$state.abb,
         locationmode = "USA-states",
-        z = all_weather_events_stateabbrev$event_count) %>%
-  layout(geo = list(scope = "usa"))
+        z = plotly_2016_data$event_count, text = plotly_2016_data$hover) %>%
+  layout(geo = list(scope = "usa"), title = "All weather events in 2016 by state")
 
 ```
 
