@@ -108,9 +108,10 @@ plotly_2016_data <- weather_trim3 %>%
 
 # add hover column for mouse-over text
 
-plotly_2016_data$hover <- c(paste0("Injuries = ", plotly_2016_data$Injuries_total, 
+plotly_2016_data$hover <- c(paste0(plotly_2016_data$state.abb,
+                                   "\nInjuries = ", plotly_2016_data$Injuries_total, 
                                 "\nDeaths = ", plotly_2016_data$Deaths_total, 
-                                "\nDamage = ", plotly_2016_data$Damage_total))
+                                "\nDamage = $", plotly_2016_data$Damage_total))
 
 ```
 
@@ -121,6 +122,8 @@ plot_ly(plotly_2016_data, type = "choropleth",
         locationmode = "USA-states",
         z = plotly_2016_data$event_count, text = plotly_2016_data$hover) %>%
   layout(geo = list(scope = "usa"), title = "All weather events in 2016 by state")
+
+## Next step - make Shiny app with years, other info
 
 ```
 
