@@ -6,9 +6,9 @@ Thank you to Jonathan Mackrory from Portland Data Science Group for providing th
 
 **Goal:** Explore different ways to visualize this dataset. 
 
-I first generated a static cloropleth showing all weather events in 2016 by state using ggplot with the [fiftystater](https://cran.r-project.org/web/packages/fiftystater/vignettes/fiftystater.html) package.
+I first generated a static choropleth showing all weather events in 2016 by state using ggplot with the [fiftystater](https://cran.r-project.org/web/packages/fiftystater/vignettes/fiftystater.html) package.
 
-I next used plotly to generate an interactive cloropleth showing all weather events in 2016 by state, with injuries, deaths, and damage in the hover text.
+I next used plotly to generate an interactive choropleth showing all weather events in 2016 by state, with injuries, deaths, and damage in the hover text.
 
 My next goal is to create a Shiny app with more interactive features.
 
