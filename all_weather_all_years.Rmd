@@ -6,14 +6,12 @@ output: html_notebook
 ```{r}
 
 library(tidyverse)
-library(leaflet)
 library(fiftystater)
 library(maps)
 library(mapproj)
 library(viridis)
 library(ggmap)
 library(plotly)
-library(shiny)
 
 ```
 
@@ -107,17 +105,18 @@ plotly_2016_data <- weather_trim3 %>%
   summarize(event_count = n(), Injuries_total = sum(INJURIES_ALL), Deaths_total = sum(DEATHS_ALL), Damage_total = sum(DAMAGE_ALL))
 
 # add hover column for mouse-over text
+# use prettyNum to add commas to dollar amounts
 
 plotly_2016_data$hover <- c(paste0(plotly_2016_data$state.abb,
                                    "\nInjuries = ", plotly_2016_data$Injuries_total, 
                                 "\nDeaths = ", plotly_2016_data$Deaths_total, 
-                                "\nDamage = $", plotly_2016_data$Damage_total))
+                                "\nDamage = $", prettyNum(plotly_2016_data$Damage_total, big.mark = ",", scientific = FALSE, trim = TRUE)))
 
 ```
 
 ```{r}
 
-plot_ly(plotly_2016_data, type = "choropleth", 
+plotly_2016 <- plot_ly(plotly_2016_data, type = "choropleth", 
         locations = plotly_2016_data$state.abb,
         locationmode = "USA-states",
         z = plotly_2016_data$event_count, text = plotly_2016_data$hover) %>%
