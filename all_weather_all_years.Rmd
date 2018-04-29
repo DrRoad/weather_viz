@@ -122,6 +122,8 @@ plotly_2016 <- plot_ly(plotly_2016_data, type = "choropleth",
         z = plotly_2016_data$event_count, text = plotly_2016_data$hover) %>%
   layout(geo = list(scope = "usa"), title = "All weather events in 2016 by state")
 
+htmlwidgets::saveWidget(plotly_2016, "plotly_2016_weather.html")
+
 ## Next step - make Shiny app with years, other info
 
 ```
