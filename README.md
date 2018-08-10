@@ -18,4 +18,4 @@ My next goal is to create a Shiny app with more interactive features.
 
 plotly widget can be downloaded [here](https://github.com/lopierra/weather_viz/blob/master/plotly_2016_weather.html)
 
-full report is [here]
+full report is [here](https://github.com/lopierra/weather_viz/blob/master/all_weather_all_years.md)
