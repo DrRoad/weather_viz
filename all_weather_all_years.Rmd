@@ -1,10 +1,10 @@
 ---
 title: "Portland Data Science Group historical severe weather data visualization workshop"
-output: html_notebook
+output: github_document
+always_allow_html: yes
 ---
 
-```{r}
-
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(fiftystater)
 library(maps)
@@ -12,20 +12,16 @@ library(mapproj)
 library(viridis)
 library(ggmap)
 library(plotly)
-
 ```
 
 ```{r}
-
 # Portland Data Science Group data: https://drive.google.com/drive/folders/1JK1Oo6a85ZvEs1f3MM3wcGzCSAskXd-4
 # NOAA website: https://www.ncdc.noaa.gov/stormevents/
 
 # Jonathan Mackrory - event_reduced = broader groupings of events; also did some other cleanup
 
 weather_trim3 <- read.csv("detail_trim3.csv")
-
 ```
-
 
 ```{r}
 
@@ -33,31 +29,32 @@ weather_trim3 <- read.csv("detail_trim3.csv")
 # fiftystates needs lowercase state names
 # plotly needs state abbreviations
 
-
 weather_trim3 <- weather_trim3 %>%
   mutate(state = tolower(STATE))
 
 state_abbs <- data.frame(STATE = toupper(state.name), state.abb)
 
-weather_trim3 <- left_join(weather_trim3, state_abbs) 
+weather_trim3 <- left_join(weather_trim3, state_abbs)
 
 ```
+
+```{r, eval=FALSE, include=FALSE}
+# Rain events subset - code not run
 
 # some queries don't cover all states (e.g. Rain events in 2016), so those need to be added as 0 or they will show as holes in the map 
 # lookup table of 50 state names
 # join with rain_2016_states
 # replace NA with zero
 
-
 statelist <- data.frame(state = tolower(state.name))
 
 rain_2016_allstates <- left_join(statelist, rain_2016_states, by="state")
 
 rain_2016_allstates$event_count[is.na(rain_2016_allstates$event_count)] <- 0
-
-
+```
 
 ```{r}
+# Making static ggplot choropleth
 
 # code from fiftystater vignette: https://cran.r-project.org/web/packages/fiftystater/vignettes/fiftystater.html
 
@@ -82,13 +79,13 @@ all_2016_ggplot <- weather_trim3 %>%
 all_2016_ggplot
 
 ggsave("all_weather.png", all_2016_ggplot)
-
 ```
 
 
 ```{r}
+# Making interactive plotly map
 
-# have to filter data first, then do plotly (doesn't seem to work with filter piped directly into plotly)
+# filter data first, then do plotly (doesn't seem to work with filter piped directly into plotly)
 
 # prepare columns adding indirect/direct injuries, indirect/direct deaths, property/crop damage
 
@@ -111,11 +108,9 @@ plotly_2016_data$hover <- c(paste0(plotly_2016_data$state.abb,
                                    "\nInjuries = ", plotly_2016_data$Injuries_total, 
                                 "\nDeaths = ", plotly_2016_data$Deaths_total, 
                                 "\nDamage = $", prettyNum(plotly_2016_data$Damage_total, big.mark = ",", scientific = FALSE, trim = TRUE)))
-
 ```
 
 ```{r}
-
 plotly_2016 <- plot_ly(plotly_2016_data, type = "choropleth", 
         locations = plotly_2016_data$state.abb,
         locationmode = "USA-states",
@@ -124,8 +119,9 @@ plotly_2016 <- plot_ly(plotly_2016_data, type = "choropleth",
 
 htmlwidgets::saveWidget(plotly_2016, "plotly_2016_weather.html")
 
-## Next step - make Shiny app with years, other info
+plotly_2016
 
+## Next step - make Shiny app with years, other info
 ```
 
 

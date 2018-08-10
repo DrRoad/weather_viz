@@ -17,3 +17,5 @@ My next goal is to create a Shiny app with more interactive features.
 ![ggplot](https://github.com/lopierra/weather_viz/blob/master/all_weather_fiftystater.png)
 
 plotly widget can be downloaded [here](https://github.com/lopierra/weather_viz/blob/master/plotly_2016_weather.html)
+
+full report is [here]
